@@ -1,0 +1,8 @@
+            COMMAND-CONNECTION
+USER festbilletter.nu        - Log ind som bruger
+PASS socketergud             - Brug password
+PASV                         - Aktivér passive mode
+
+            DATA-CONNECTION
+LIST                         - Vis nuværende mappe
+RETR filnavn                 - Hent fil
