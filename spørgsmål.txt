@@ -1,0 +1,11 @@
+SPØRGSMÅL TIL LEKTOR ELLER TA
+
+Skal det være et generelt program?
+    - Skal det altid bare forbinde til den samme server?
+    - Skal der være et interface, så man selv kan se og vælge filer?
+
+
+
+---------------------------------------------------------------------------------------------------------
+
+Skal vores klient være aktiv eller passiv i datakommunikation? - eller må vi selv vælge?

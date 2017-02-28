@@ -65,6 +65,8 @@ int main(int argc, char *argv[]) {
     // Aktivér passive mode på server
     // serveren returnerer hvordan den gerne vil have at vi forbinder til den med data-con, det skal gemmes todo
 
+    // Lav nyt socket til datakommunikation todo
+
     // Tekst interface
     // Kør et tekst interface ala. det der er blevet lavet i java til CDIO todo
 
