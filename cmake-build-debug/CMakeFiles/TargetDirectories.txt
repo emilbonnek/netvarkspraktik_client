@@ -1,3 +1,0 @@
-/Users/emilbonnekristiansen/ClionProjects/netvarkspraktik_client/cmake-build-debug/CMakeFiles/edit_cache.dir
-/Users/emilbonnekristiansen/ClionProjects/netvarkspraktik_client/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/Users/emilbonnekristiansen/ClionProjects/netvarkspraktik_client/cmake-build-debug/CMakeFiles/netvarkspraktik_1.dir
