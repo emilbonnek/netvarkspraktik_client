@@ -17,8 +17,7 @@ void error(const char *msg) {
     perror(msg);
     exit(0);
 }
-void sendMessage(string message){
-
+string sendMessage(string message){
 
 }
 
@@ -28,6 +27,7 @@ int main(int argc, char *argv[]) {
     struct hostent *server;
     int messageSize = 256;
     char buffer[messageSize];
+
 
     // Program was called with too few arguments
     if (argc < 5) {
@@ -63,11 +63,6 @@ int main(int argc, char *argv[]) {
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
         error("ERROR connecting");
 
-    // Write out commands
-    cout << "USER "+username << endl;
-    cout << "PASS "+password << endl;
-    cout << "PASV" << endl;
-
     // Initiate contact by sending empty TCP-message (solves the one-off problem)
     bzero(buffer, messageSize);
     write(sockfd, buffer, strlen(buffer));
@@ -75,42 +70,43 @@ int main(int argc, char *argv[]) {
     read(sockfd, buffer, messageSize);
     printf("%s\n", buffer);
 
-    // Login
+    //----- Login --------
+    string userlogin = "USER "+username+"\n";
+    string userpass = "PASS "+password+"\n";
+    string passivemode = "PASV\n";
 
-    cout << "Please enter the message: " << endl;
-
-
-    // Kan du lave et  tomt FILE * objekt? et
-
-    bzero(buffer, messageSize);
-    FILE* loginCommand = fopen("loginCommandFile.txt", "r");
-    //fputs(username.c_str(), loginCommand);
-
-    //fputs(username.c_str(), stdout);
-    fgets(buffer, messageSize, loginCommand);
-    fputs(buffer, stdout);
+    // brugernavn
+    strncpy(buffer, userlogin.c_str(),messageSize);
     n = write(sockfd, buffer, strlen(buffer));
     if (n < 0)
         error("ERROR writing to socket");
-    fputs(buffer, stdout);
+    bzero(buffer, messageSize);
+    n = read(sockfd, buffer, messageSize);
+    if (n < 0)
+        error("ERROR reading from socket");
+    //fputs(buffer, stdout);
+
+    // password
+    strncpy(buffer, userpass.c_str(),messageSize);
+    n = write(sockfd, buffer, strlen(buffer));
+    if (n < 0)
+        error("ERROR writing to socket");
+    bzero(buffer, messageSize);
+    n = read(sockfd, buffer, messageSize);
+    if (n < 0)
+        error("ERROR reading from socket");
+    //fputs(buffer, stdout);
+
+    // passiv tilstand
+    strncpy(buffer, passivemode.c_str(),messageSize);
+    n = write(sockfd, buffer, strlen(buffer));
+    if (n < 0)
+        error("ERROR writing to socket");
     bzero(buffer, messageSize);
     n = read(sockfd, buffer, messageSize);
     if (n < 0)
         error("ERROR reading from socket");
     fputs(buffer, stdout);
-
-
-//
-//    bzero(buffer, messageSize);
-//
-//    FILE* loginCommand;
-//    loginCommand = fopen("loginCommandFile.txt", "a");
-//    fgets(buffer, messageSize, loginCommand);
-//
-//    write(sockfd, buffer, strlen(buffer));
-//    bzero(buffer, messageSize);
-    //read(sockfd, buffer, messageSize);
-
 
     // log ind / giv fejlmeddelese(til STDERR) og luk program todo
 
@@ -124,7 +120,6 @@ int main(int argc, char *argv[]) {
 
     while (1) {
         printf("Please enter the message: ");
-
         bzero(buffer, messageSize);
         fgets(buffer, messageSize, stdin);
         n = write(sockfd, buffer, strlen(buffer));
