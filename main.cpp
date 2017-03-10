@@ -35,11 +35,12 @@ int calculatePort(const string s) {
 
 int main(int argc, char *argv[]) {
     // Fejlmeddelse hvis programmet bruges forkert (forkert antal argumenter)
+    // Error message for wrong input (Incorrect amount of arguments)
     if (argc < 5) {
         fprintf(stderr, "usage: %s hostname port username password\n", argv[0]);
         exit(0);
     }
-    // Gem programmets argumenter i variabler
+    // Saves arguments in variables
     string hostname(argv[1]);
     string port(argv[2]);
     string username(argv[3]);
@@ -51,41 +52,42 @@ int main(int argc, char *argv[]) {
     int newPort;
     socketHandler dataCon;
 
-    // Send default beskeder
-    controlCon.sendMessage("");                 // Tom besked til at initiere kontakt
-    controlCon.sendMessage("USER " + username); // Angiv brugernavn
-    controlCon.sendMessage("PASS " + password); // Angiv password
-    controlCon.sendMessage("TYPE A");           // Angiv at dataforbindelsen skal benytte ASCII
+    // Send default messages
+    controlCon.sendMessage("");                 // Empty message to initiate contact
+    controlCon.sendMessage("USER " + username); // Set username
+    controlCon.sendMessage("PASS " + password); // Set password
+    controlCon.sendMessage("TYPE A");            // Establish ASCII for the data connection
 
-    // Opsæt dataforbindelse
-    controlResponse = controlCon.sendMessage("PASV"); // Sæt serveren i PASSIVE mode
+    // Create data connection
+    controlResponse = controlCon.sendMessage("PASV"); // Puts the server in PASSIVE mode
     newPort = calculatePort(controlResponse.getMessage());
     dataCon.reconnect(hostname, to_string(newPort));
 
-    // EKSEMPLER
-    // 1. Hent en fil fra roden
+    // EXAMPLES
+    // 1. Fetch a file from the root
+
     cout << "------EKSEMPEL 1------" << endl;
     controlCon.sendMessage("RETR file.txt");
     dataResponse = dataCon.receiveToFile("../downloads/file.txt");
     cout << dataResponse << endl;
-    controlCon.sendMessage(""); // En tom besked sendes
-    // Genskab dataforbindelse
+    controlCon.sendMessage(""); // Empty message sent
+    // Re-establish data connection
     controlResponse = controlCon.sendMessage("PASV");
     newPort = calculatePort(controlResponse.getMessage());
     dataCon.reconnect(hostname, to_string(newPort));
 
-    // 2. Hent en fil fra en undermappe
+    // 2. Fetch a file from a subfolder
     cout << "------EKSEMPEL 2------" << endl;
     controlCon.sendMessage("RETR pub/62501/examples/getsatpos.h");
     dataResponse = dataCon.receiveToFile("../downloads/getsatpos.h");
     cout << dataResponse << endl;
-    controlCon.sendMessage(""); // En tom besked sendes
-    // Genskab dataforbindelse
+    controlCon.sendMessage(""); // Empty message sent
+    // Re-establish data connection
     controlResponse = controlCon.sendMessage("PASV");
     newPort = calculatePort(controlResponse.getMessage());
     dataCon.reconnect(hostname, to_string(newPort));
 
-    // 3. Forsøg at sende en fil
+    // 3. Attempt upload of file
     cout << "------EKSEMPEL 3------" << endl;
     controlResponse = controlCon.sendMessage("STOR myfile.txt");
     if (controlResponse.getCode() == 550) {
@@ -94,7 +96,7 @@ int main(int argc, char *argv[]) {
         dataCon.sendFile("myfile.txt");
     }
 
-    controlCon.sendMessage("QUIT");  // Tom besked til at initiere kontakt
+    controlCon.sendMessage("QUIT");  // Empty message to initiate contact
     controlCon.closeConnection();
     dataCon.closeConnection();
 
