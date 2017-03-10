@@ -6,3 +6,8 @@ PASV                         - Aktivér passive mode
             DATA-CONNECTION
 LIST                         - Vis nuværende mappe
 RETR filnavn                 - Hent fil
+
+
+
+
+RETR pub/62501/linuxchecklist.pdf

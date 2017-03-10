@@ -9,22 +9,33 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <regex>
 #include "socketHandler.h"
+#include "messageReply.h"
+
 
 using namespace std;
 
-// Print error and exit program
-void error(const char *msg) {
-    perror(msg);
-    exit(0);
-}
-string sendMessage(string message){
+int calculatePort(const string s) {
+    int port = 256;
+    string str;
 
+    regex rgx("(\\d+),(\\d+)\\)");
+    smatch match;
+
+    if (regex_search(s.begin(), s.end(), match, rgx)) {
+        str = match[1];
+        port *= atoi(str.c_str());
+        str = match[2];
+        port += atoi(str.c_str());
+    }
+
+    return port;
 }
 
 int main(int argc, char *argv[]) {
     if (argc < 5) {
-        fprintf(stderr,"usage %s hostname port username password\n", argv[0]);
+        fprintf(stderr, "usage: %s hostname port username password\n", argv[0]);
         exit(0);
     }
     // Extract server and portno from arguments
@@ -33,39 +44,37 @@ int main(int argc, char *argv[]) {
     string username(argv[3]);
     string password(argv[4]);
 
-    string response;
+    messageReply controlResponse;
+    string dataResponse;
+    socketHandler controlCon(hostname, port);
 
-    socketHandler rect(hostname,port);
-    response = rect.sendMessage("");
-    response = rect.sendMessage("USER "+username);
-    response = rect.sendMessage("PASS "+password);
-    response = rect.sendMessage("PASV");
-    cout << response;
+    // Send default beskeder
+    controlCon.sendMessage("");
+    controlCon.sendMessage("USER " + username);
+    controlCon.sendMessage("PASS " + password);
+    controlResponse = controlCon.sendMessage("PASV");
 
-//
-//    // log ind / giv fejlmeddelese(til STDERR) og luk program todo
-//
-//    // Aktivér passive mode på server
-//    // serveren returnerer hvordan den gerne vil have at vi forbinder til den med data-con, det skal gemmes todo
-//
-//    // Lav nyt socket til datakommunikation todo
-//
-//    // Tekst interface
-//    // Kør et tekst interface ala. det der er blevet lavet i java til CDIO todo
-//
-//    while (1) {
-//        printf("Please enter the message: ");
-//        bzero(buffer, messageSize);
-//        fgets(buffer, messageSize, stdin);
-//        n = write(sockfd, buffer, strlen(buffer));
-//        if (n < 0)
-//            error("ERROR writing to socket");
-//        bzero(buffer, messageSize);
-//        n = read(sockfd, buffer, messageSize);
-//        if (n < 0)
-//            error("ERROR reading from socket");
-//        printf("%s\n", buffer);
-//    }
-//    close(sockfd);
-//    return 0;
+    // Beregn port til datafobindelse og opret nyt socket
+    int newPort = calculatePort(controlResponse.getMessage());
+    socketHandler dataCon(hostname, to_string(newPort));
+
+
+    // Lad brugeren interegere
+    string inputString;
+
+    cout << "Skriv en besked" << endl;
+    getline(cin, inputString);
+    controlResponse = controlCon.sendMessage(inputString);
+    cout << "--CONTROL CONNECTION REPLY--" << endl;
+    cout << controlResponse.format() << endl;
+    cout << "--DATA REPLY--" << endl;
+    dataResponse = dataCon.receive();
+    cout << dataResponse << endl;
+
+    // Skriv dataresponse til fil todo
+
+    controlCon.closeConnection();
+    dataCon.closeConnection();
+
+    return 0;
 }
