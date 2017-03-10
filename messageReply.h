@@ -10,6 +10,7 @@
 
 using namespace std;
 
+// This class represents a reply to a message on the control connection
 class messageReply {
 private:
     int code;

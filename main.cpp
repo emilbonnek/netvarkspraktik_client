@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 
     cout << "------EKSEMPEL 1------" << endl;
     controlCon.sendMessage("RETR file.txt");
-    dataResponse = dataCon.receiveToFile("../downloads/file.txt");
+    dataResponse = dataCon.receiveFile("../downloads/file.txt");
     cout << dataResponse << endl;
     controlCon.sendMessage(""); // Empty message sent
     // Re-establish data connection
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
     // 2. Fetch a file from a subfolder
     cout << "------EKSEMPEL 2------" << endl;
     controlCon.sendMessage("RETR pub/62501/examples/getsatpos.h");
-    dataResponse = dataCon.receiveToFile("../downloads/getsatpos.h");
+    dataResponse = dataCon.receiveFile("../downloads/getsatpos.h");
     cout << dataResponse << endl;
     controlCon.sendMessage(""); // Empty message sent
     // Re-establish data connection
@@ -96,7 +96,8 @@ int main(int argc, char *argv[]) {
         dataCon.sendFile("myfile.txt");
     }
 
-    controlCon.sendMessage("QUIT");  // Empty message to initiate contact
+    // Shutting down
+    controlCon.sendMessage("QUIT");  // Telling the server to stop the session
     controlCon.closeConnection();
     dataCon.closeConnection();
 
