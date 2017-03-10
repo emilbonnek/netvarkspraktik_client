@@ -16,29 +16,30 @@
 
 using namespace std;
 
+// Calculates the port for dataconnectivity given a PASV response from the server
 int calculatePort(const string s) {
     int port = 256;
-    string str;
-
-    regex rgx("(\\d+),(\\d+)\\)");
+    regex rgx("(\\d+),(\\d+)\\)"); // Regex for finding port number given a response from the server
     smatch match;
 
     if (regex_search(s.begin(), s.end(), match, rgx)) {
-        str = match[1];
-        port *= atoi(str.c_str());
+        // As match saves it as basic_string we will need to save it as just a string before we can make it into a an int
+        string str = match[1];
+        port *= stoi(str);
         str = match[2];
-        port += atoi(str.c_str());
+        port += stoi(str);
     }
 
     return port;
 }
 
 int main(int argc, char *argv[]) {
+    // Fejlmeddelse hvis programmet bruges forkert (forkert antal argumenter)
     if (argc < 5) {
         fprintf(stderr, "usage: %s hostname port username password\n", argv[0]);
         exit(0);
     }
-    // Extract server and portno from arguments
+    // Gem programmets argumenter i variabler
     string hostname(argv[1]);
     string port(argv[2]);
     string username(argv[3]);
@@ -47,32 +48,53 @@ int main(int argc, char *argv[]) {
     messageReply controlResponse;
     string dataResponse;
     socketHandler controlCon(hostname, port);
+    int newPort;
+    socketHandler dataCon;
 
     // Send default beskeder
-    controlCon.sendMessage("");
-    controlCon.sendMessage("USER " + username);
-    controlCon.sendMessage("PASS " + password);
-    controlResponse = controlCon.sendMessage("PASV");
+    controlCon.sendMessage("");                 // Tom besked til at initiere kontakt
+    controlCon.sendMessage("USER " + username); // Angiv brugernavn
+    controlCon.sendMessage("PASS " + password); // Angiv password
+    controlCon.sendMessage("TYPE A");           // Angiv at dataforbindelsen skal benytte ASCII
 
-    // Beregn port til datafobindelse og opret nyt socket
-    int newPort = calculatePort(controlResponse.getMessage());
-    socketHandler dataCon(hostname, to_string(newPort));
+    // Opsæt dataforbindelse
+    controlResponse = controlCon.sendMessage("PASV"); // Sæt serveren i PASSIVE mode
+    newPort = calculatePort(controlResponse.getMessage());
+    dataCon.reconnect(hostname, to_string(newPort));
 
-
-    // Lad brugeren interegere
-    string inputString;
-
-    cout << "Skriv en besked" << endl;
-    getline(cin, inputString);
-    controlResponse = controlCon.sendMessage(inputString);
-    cout << "--CONTROL CONNECTION REPLY--" << endl;
-    cout << controlResponse.format() << endl;
-    cout << "--DATA REPLY--" << endl;
-    dataResponse = dataCon.receive();
+    // EKSEMPLER
+    // 1. Hent en fil fra roden
+    cout << "------EKSEMPEL 1------" << endl;
+    controlCon.sendMessage("RETR file.txt");
+    dataResponse = dataCon.receiveToFile("../downloads/file.txt");
     cout << dataResponse << endl;
+    controlCon.sendMessage(""); // En tom besked sendes
+    // Genskab dataforbindelse
+    controlResponse = controlCon.sendMessage("PASV");
+    newPort = calculatePort(controlResponse.getMessage());
+    dataCon.reconnect(hostname, to_string(newPort));
 
-    // Skriv dataresponse til fil todo
+    // 2. Hent en fil fra en undermappe
+    cout << "------EKSEMPEL 2------" << endl;
+    controlCon.sendMessage("RETR pub/62501/examples/getsatpos.h");
+    dataResponse = dataCon.receiveToFile("../downloads/getsatpos.h");
+    cout << dataResponse << endl;
+    controlCon.sendMessage(""); // En tom besked sendes
+    // Genskab dataforbindelse
+    controlResponse = controlCon.sendMessage("PASV");
+    newPort = calculatePort(controlResponse.getMessage());
+    dataCon.reconnect(hostname, to_string(newPort));
 
+    // 3. Forsøg at sende en fil
+    cout << "------EKSEMPEL 3------" << endl;
+    controlResponse = controlCon.sendMessage("STOR myfile.txt");
+    if (controlResponse.getCode() == 550) {
+        cout << controlResponse.format() << endl;
+    } else {
+        dataCon.sendFile("myfile.txt");
+    }
+
+    controlCon.sendMessage("QUIT");  // Tom besked til at initiere kontakt
     controlCon.closeConnection();
     dataCon.closeConnection();
 
